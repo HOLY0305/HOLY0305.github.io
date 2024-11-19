@@ -1,0 +1,760 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>黄泓霖的个人网页</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f4f4f4;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        header {
+            background-color: rgba(128, 128, 128, 0.8);
+            backdrop-filter: blur(5px);
+            color: #fff;
+            padding: 2rem;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .welcome-message {
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        nav ul {
+            list-style-type: none;
+            display: flex;
+            gap: 2rem;
+        }
+
+        nav ul li {
+            position: relative;
+        }
+
+        nav ul li a {
+            color: #fff;
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+            font-size: 20px;
+        }
+
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            background-color: rgba(128, 128, 128, 0.8);
+            min-width: 180px; /* 增加最小宽度 */
+            box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+            z-index: 1;
+            backdrop-filter: blur(5px);
+        }
+
+        .dropdown-content a {
+            color: #fff;
+            padding: 12px 16px;
+            text-decoration: none;
+            display: block;
+            transition: background-color 0.3s ease;
+            white-space: nowrap; /* 防止文本换行 */
+        }
+
+        .dropdown-content a:hover {
+            background-color: rgba(128, 128, 128, 1); /* 鼠标悬停时加深背景色 */
+        }
+
+        .dropdown:hover .dropdown-content {
+            display: block;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 150px auto 2rem;
+            padding: 0 1rem;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .personal-info {
+            position: relative; /* 添加这行 */
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background-color: #fff;
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            height: 250px; /* 固定高度 */
+        }
+
+        .personal-info:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .personal-info-text {
+            flex: 1;
+        }
+
+        .personal-info img {
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin-left: 2rem;
+        }
+
+        .personal-info h1 {
+            font-size: 28px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 0.5rem;
+        }
+
+        .personal-info p {
+            font-size: 18px;
+            margin-bottom: 0.5rem;
+        }
+
+        .resume {
+            display: none;
+            background-color: #fff;
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            margin-top: 2rem;
+        }
+
+        .resume h2 {
+            color: #2c3e50;
+            margin-bottom: 1rem;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 0.5rem;
+        }
+
+        .resume h3 {
+            color: #34495e;
+            margin-top: 1rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .resume ul {
+            list-style-type: none;
+            padding-left: 0;
+        }
+
+        .resume li {
+            margin-bottom: 0.5rem;
+            position: relative;
+            padding-left: 20px;
+        }
+
+        .resume li::before {
+            content: "•";
+            color: #3498db;
+            position: absolute;
+            left: 0;
+            top: 0;
+        }
+
+        .resume-item {
+            margin-bottom: 1.5rem;
+        }
+
+        .resume-item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            margin-bottom: 0.5rem;
+        }
+
+        .resume-item-title {
+            font-weight: bold;
+            color: #2c3e50;
+        }
+
+        .resume-item-date {
+            font-style: italic;
+            color: #7f8c8d;
+        }
+
+        .resume-item-content {
+            margin-left: 1rem;
+        }
+
+        footer {
+            background-color: #333;
+            color: #fff;
+            text-align: center;
+            padding: 1rem;
+            margin-top: auto;
+        }
+
+        .social-icons {
+            margin-bottom: 1rem;
+        }
+
+        .social-icons a {
+            color: #fff;
+            font-size: 24px;
+            margin: 0 0.5rem;
+            transition: color 0.3s ease;
+        }
+
+        .social-icons a:hover {
+            color: #3498db;
+        }
+
+        .language-switch {
+            margin-bottom: 1rem;
+        }
+
+        .download-button {
+            display: inline-block;
+            background-color: #2ecc71;
+            color: #fff;
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+            border-radius: 5px;
+            transition: background-color 0.3s ease;
+        }
+
+        .download-button:hover {
+            background-color: #27ae60;
+        }
+
+        .resume-controls {
+            display: none;
+            margin-top: 1rem;
+            text-align: center;
+        }
+
+        /* 修改语言切换按钮样式 */
+        .language-button {
+            background-color: #3498db;
+            color: #fff;
+            border: none;
+            padding: 0.5rem 1rem;
+            margin: 0 0.5rem;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            font-size: 16px; /* 调整字体大小 */
+        }
+
+        .language-button:hover {
+            background-color: #2980b9;
+        }
+
+        .language-button.active {
+            background-color: #2c3e50;
+        }
+
+        /* 添加语言选择样式 */
+        #language-select {
+            background-color: transparent;
+            color: #fff;
+            border: 1px solid #fff;
+            padding: 5px 10px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        #language-select option {
+            background-color: rgba(128, 128, 128, 0.8);
+            color: #fff;
+        }
+
+        .click-hint {
+            position: absolute;
+            bottom: 10px;
+            left: 0;
+            right: 0;
+            text-align: center;
+            color: #999;
+            opacity: 0.5;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <!-- 添加canvas素，放在body的最前面 -->
+    <canvas id="starCanvas" style="position: fixed; top: 0; left: 0; pointer-events: none; z-index: 9999;"></canvas>
+    
+    <header>
+        <div class="welcome-message">欢迎来黄泓霖的个人页面</div>
+        <nav>
+            <ul>
+                <li><a href="#home" id="nav-home">Home</a></li>
+                <li class="dropdown">
+                    <a href="#download" id="nav-download">Download</a>
+                    <div class="dropdown-content">
+                        <a href="./cv/zh.pdf" download id="download-zh">中文简历</a>
+                        <a href="./cv/en.pdf" download id="download-en">English Resume</a>
+                        <a href="#works" id="nav-works">Works</a>
+                    </div>
+                </li>
+                <li class="dropdown">
+                    <a href="#resume" id="nav-resume">Resume</a>
+                    <div class="dropdown-content">
+                        <a href="#" id="view-zh-resume">中文简历</a>
+                        <a href="#" id="view-en-resume">English Resume</a>
+                    </div>
+                </li>
+                <li><a href="#works" id="nav-works-main">Works</a></li>
+                <li>
+                    <select id="language-select">
+                        <option value="zh">中文</option>
+                        <option value="en">English</option>
+                    </select>
+                </li>
+            </ul>
+        </nav>
+    </header>
+
+    <div class="container">
+        <section class="personal-info" id="personal-info">
+            <div class="personal-info-text">
+                <h1>黄泓霖</h1>
+                <p>邮箱：1242768713@qq.com</p>
+                <p>手机号码：18098107376</p>
+                <p>学校：深圳大学</p>
+                <p>专业：自动化</p>
+            </div>
+            <img src="./imgs/img.jpg" alt="黄泓霖的照片">
+            <div class="click-hint">点击查看详细信息</div>
+        </section>
+
+        <section class="resume" id="resume-zh">
+            <h2>教育背景</h2>
+            <div class="resume-item">
+                <div class="resume-item-header">
+                    <span class="resume-item-title">深圳大学，自动化专业</span>
+                    <span class="resume-item-date">2022年9月 - 至今</span>
+                </div>
+                <div class="resume-item-content">
+                    <p>本科学位</p>
+                </div>
+            </div>
+
+            <h2>工作经历</h2>
+            <div class="resume-item">
+                <div class="resume-item-header">
+                    <span class="resume-item-title">筑蓝教育科技有限公司 - 项目助理</span>
+                    <span class="resume-item-date">2022.07 - 2022.08</span>
+                </div>
+                <div class="resume-item-content">
+                    <h3>主要职责：</h3>
+                    <ul>
+                        <li>负责设计并推广针对高考生的升学指导课程，提供专业的教育咨询服务。</li>
+                        <li>利用自动化技术深入了解高等教育体系及招生政策，为学生和家长提供最新的高校录取信息解读。</li>
+                        <li>开展个性化志愿填报辅导，结合学生学业成绩、兴趣特长及未来发展方向，制定合理的志愿填报策略。</li>
+                        <li>跟进学生录取情况，收集反馈信息，持续优化服务流程，提高客户满意度。</li>
+                    </ul>
+                </div>
+            </div>
+
+            <h2>项目经历</h2>
+            <div class="resume-item">
+                <div class="resume-item-header">
+                    <span class="resume-item-title">创新创业仿真项目：智能鞋柜</span>
+                    <span class="resume-item-date">2024年2月 - 至今</span>
+                </div>
+                <div class="resume-item-content">
+                    <p>参与设计多功能智能鞋柜，集存储、清洁、烘干、消毒等功能于一体，利用物联网技术和智能化控制，实现自动识别鞋子类型并进行相应处理。</p>
+                </div>
+            </div>
+            <div class="resume-item">
+                <div class="resume-item-header">
+                    <span class="resume-item-title">家有华安-儿童伴学机器人</span>
+                    <span class="resume-item-date">2023年12月 - 2024年9月</span>
+                </div>
+                <div class="resume-item-content">
+                    <p>参与设计并开发桌面收纳机械臂，集成机械臂技术、图像识别与处理、智能控制算法及语音交互功能，为儿童提供高效便捷的桌面整理解决方案。</p>
+                </div>
+            </div>
+            <div class="resume-item">
+                <div class="resume-item-header">
+                    <span class="resume-item-title">全地形越障小车</span>
+                    <span class="resume-item-date">2023年9月 - 2024年8月</span>
+                </div>
+                <div class="resume-item-content">
+                    <p>参与设计并组装全地形智能平衡搬运小车，实现自主控制、越障、循迹和颜色识别等功能。</p>
+                </div>
+            </div>
+
+            <h2>职业技能</h2>
+            <ul>
+                <li>熟练使用C、C++和Python等多种编程语言，具备扎实的数据结构和算法基础，能够高效地进行软件开发和调试。</li>
+                <li>掌握面向对象的设计原则与实践方法，熟练运用设计模式解决复杂问题。</li>
+                <li>拥有丰富的嵌入式系设计经验，熟悉ARM、STM32等微控制器架构及其应用开发。</li>
+                <li>熟练使用西���子PLC及相关编程工具，能够进行工业自动化控制系统的开发与维护。</li>
+                <li>熟练操作SolidWorks等三维建模软件，具备从概念到成品的全周期设计能力。</li>
+                <li>熟练掌握Word、Excel、PowerPoint等Office套件，能够高效处理文档、数据分析及演示文稿制作。</li>
+            </ul>
+
+            <h2>个人评价</h2>
+            <ul>
+                <li>具备扎实的专业基础知识，对自动控制理论、信号处理、传感器技术等领域有深入的理解。精通C/C++和Python编程语言，能够灵活应用于各类控制系统的设计与实现。</li>
+                <li>积极参与校内外的各项实践活动，包括机器人竞赛、自动化生产线项目等，积累了丰的实际操作经验，提升了动手能力和解决问题的能力。</li>
+                <li>始终保持对新技术的好奇心和学习热情，不断提高自己的技术水平和业务能力。在多个团队项目中担任核心角色，善于与团队成员沟通协作。</li>
+            </ul>
+
+            <h2>比赛经历</h2>
+            <ul>
+                <li>2023年8月 "创祎杯"全国大学生新创业大赛 国家级金奖</li>
+                <li>2023年11月 2023年第五届国际青年人工智能大赛-中国赛区选拔赛 国家级三等奖</li>
+                <li>2024年7月 2024年第七届中国高校智能机器人创意大赛 国家级三等奖</li>
+                <li>2024年7月 第二十六届中国机器人及人工智能大赛广省选拔赛 一等奖</li>
+                <li>2024年8月 2024年第十八届CIMC"西门子杯"中国智能制造挑战赛全国总决赛 国家级一等奖</li>
+            </ul>
+        </section>
+
+        <section class="resume" id="resume-en" style="display: none;">
+            <h2>Education</h2>
+            <ul>
+                <li>Undergraduate, Shenzhen University, Major in Automation, September 2022 - present</li>
+            </ul>
+
+            <h2>Work Experience</h2>
+            <ul>
+                <li>
+                    <strong>Zhulan Education Technology Co., LTD</strong> - Project Assistant, 2022.07-2022.08
+                    <p>Main responsibilities:</p>
+                    <ul>
+                        <li>Use automated technology to understand the higher education system and enrollment policies, and provide students and parents with the latest college admission information interpretation.</li>
+                    </ul>
+                </li>
+            </ul>
+
+            <h2>Project Experience</h2>
+            <ul>
+                <li>
+                    <strong>Smart Shoe Cabinet</strong> - February 2024 - present
+                    <p>Participated in a smart shoe cabinet design project aimed at innovating home life experience. The shoe cabinet integrates storage, cleaning, drying, disinfection and other functions, using advanced Internet of Things technology and intelligent control to provide users with a highly integrated and humanized solution. Through in-depth study of user needs, combined with mechanical design, electronic engineering and software development, an intelligent system that can automatically identify and deal with shoe types has been successfully realized.</p>
+                </li>
+                <li>
+                    <strong>Jia You Hua - Children's Learning Companion Robot</strong> - December 2023 - September 2024
+                    <p>The project aims to provide an efficient and convenient desktop solution for children by integrating advanced robotic arm technology, image recognition and processing technology, intelligent control algorithms, and voice interaction. Served as the main person in charge of the control part in this project, with STM32 as the main controller, combined with relevant knowledge of the robotic arm, to develop the motion control of the robotic arm.</p>
+                </li>
+                <li>
+                    <strong>All-Terrain Obstacle-Crossing Vehicle</strong> - September 2023 - August 2024
+                    <p>Participated in the design and assembly of an all-terrain intelligent balanced transport car, which realized the whole process of autonomous control from identifying obstacles to crossing them. The car adopts modular design and adaptive control strategy, which can autonomously traverse a variety of complex obstacles such as narrow bridges, pipelines and stairs, and has autonomous tracking, color recognition and other functions. The focus of the project is to achieve stable driving and accurate operation of the car on different terrains through innovative mechanical structure design and intelligent algorithms.</p>
+                </li>
+            </ul>
+
+            <h2>Vocational Skills</h2>
+            <ul>
+                <li>Proficient in C, C++, Python and other programming languages, with a solid foundation of data structures and algorithms, able to efficiently develop and debug software.</li>
+                <li>Rich experience in embedded system design, familiar with ARM, STM32 and other microcontroller architectures and their application development.</li>
+                <li>Proficient in Siemens PLC and related programming tools, able to develop and maintain industrial automation control systems.</li>
+                <li>Proficient in Word, Excel, PowerPoint and other Office suite, able to efficiently handle documents, data analysis and presentation production.</li>
+            </ul>
+
+            <h2>Personal Evaluation</h2>
+            <ul>
+                <li>Possesses solid knowledge in automatic control theory, signal processing, and sensor technology, proficient in C/C++ and Python programming, and can apply these skills flexibly in the design and implementation of various control systems.</li>
+                <li>Maintains a strong curiosity and enthusiasm for learning new technologies, played a key role in multiple team projects, and excels in communication and collaboration.</li>
+            </ul>
+
+            <h2>Competition Experience</h2>
+            <ul>
+                <li>August 2023 - "Chuangyi Cup" National College Students' Innovation and Entrepreneurship Competition, National Gold Award</li>
+                <li>November 2023 - 2023 The 5th International Youth Artificial Intelligence Competition - China Division Selection, National Third Prize</li>
+                <li>July 2024 - The 7th China University Intelligent Robot Creativity Competition in 2024, National Third Prize</li>
+                <li>July 2024 - The 26th China Robot and Artificial Intelligence Competition Guangdong Provincial Selection, First Prize</li>
+                <li>August 2024 - National Finals of the 18th CIMC "Siemens Cup" China Intelligent Manufacturing Challenge, National First Prize</li>
+            </ul>
+        </section>
+
+        <div class="resume-controls" id="resume-controls">
+            <div class="language-switch">
+                <button class="language-button active" id="zh-button">中文简历</button>
+                <button class="language-button" id="en-button">English Resume</button>
+            </div>
+            <a href="#" class="download-button" id="download-resume">下载简历</a>
+        </div>
+    </div>
+
+    <footer>
+        <div class="social-icons">
+            <a href="https://github.com/HOLY0305/HOLY0305.git" target="_blank"><i class="fab fa-github"></i></a>
+            <a href="https://v.douyin.com/iSNabCV4/" target="_blank"><i class="fab fa-tiktok"></i></a>
+            <a href="#" target="_blank"><i class="fab fa-bilibili"></i></a>
+            <a href="#" target="_blank"><i class="fab fa-weixin"></i></a>
+            <a href="#" target="_blank"><i class="fab fa-qq"></i></a>
+            <a href="#" target="_blank"><i class="fab fa-zhihu"></i></a>
+        </div>
+        <p>&copy; 2024 黄泓霖. 保留所有权利。</p>
+    </footer>
+
+    <script>
+        const personalInfo = document.getElementById('personal-info');
+        const resumeZh = document.getElementById('resume-zh');
+        const resumeEn = document.getElementById('resume-en');
+        const resumeControls = document.getElementById('resume-controls');
+        const zhButton = document.getElementById('zh-button');
+        const enButton = document.getElementById('en-button');
+        const downloadButton = document.getElementById('download-resume');
+        const languageSelect = document.getElementById('language-select');
+        const welcomeMessage = document.querySelector('.welcome-message');
+        const navHome = document.getElementById('nav-home');
+        const navDownload = document.getElementById('nav-download');
+        const navResume = document.getElementById('nav-resume');
+        const navWorks = document.getElementById('nav-works');
+        const navWorksMain = document.getElementById('nav-works-main');
+        const downloadZh = document.getElementById('download-zh');
+        const downloadEn = document.getElementById('download-en');
+        const viewZhResume = document.getElementById('view-zh-resume');
+        const viewEnResume = document.getElementById('view-en-resume');
+        const personalInfoText = document.querySelector('.personal-info-text');
+        const clickHint = document.querySelector('.click-hint');
+
+        let currentLanguage = 'zh';
+
+        const translations = {
+            zh: {
+                welcome: "欢迎来到黄泓霖的个人页面",
+                home: "主页",
+                download: "下载",
+                resume: "简历",
+                works: "作品",
+                downloadZh: "中文简历",
+                downloadEn: "英文简历",
+                viewZhResume: "中文简历",
+                viewEnResume: "英文简历",
+                personalInfo: {
+                    name: "黄泓霖",
+                    email: "邮箱：     1242768713@qq.com",
+                    phone: "手机号码： 18098107376",
+                    school: "学校：    深圳大学",
+                    major: "专业：     自动化"
+                }
+            },
+            en: {
+                welcome: "Welcome to Huang Honglin's Personal Page",
+                home: "Home",
+                download: "Download",
+                resume: "Resume",
+                works: "Works",
+                downloadZh: "Chinese Resume",
+                downloadEn: "English Resume",
+                viewZhResume: "Chinese Resume",
+                viewEnResume: "English Resume",
+                personalInfo: {
+                    name: "Huang Honglin",
+                    email: "Email: 1242768713@qq.com",
+                    phone: "Phone: 18098107376",
+                    school: "School: Shenzhen University",
+                    major: "Major: Automation"
+                }
+            }
+        };
+
+        function showResume() {
+            if (currentLanguage === 'zh') {
+                resumeZh.style.display = 'block';
+                resumeEn.style.display = 'none';
+                zhButton.classList.add('active');
+                enButton.classList.remove('active');
+            } else {
+                resumeZh.style.display = 'none';
+                resumeEn.style.display = 'block';
+                zhButton.classList.remove('active');
+                enButton.classList.add('active');
+            }
+            resumeControls.style.display = 'block';
+            clickHint.style.display = 'none'; // 隐藏提示文本
+            updateDownloadButton();
+        }
+
+        function hideResume() {
+            resumeZh.style.display = 'none';
+            resumeEn.style.display = 'none';
+            resumeControls.style.display = 'none';
+            clickHint.style.display = 'block'; // 显示提示文本
+        }
+
+        personalInfo.addEventListener('click', function() {
+            if (resumeZh.style.display === 'none' && resumeEn.style.display === 'none') {
+                showResume();
+            } else {
+                hideResume();
+            }
+        });
+
+        zhButton.addEventListener('click', function() {
+            currentLanguage = 'zh';
+            showResume();
+        });
+
+        enButton.addEventListener('click', function() {
+            currentLanguage = 'en';
+            showResume();
+        });
+
+        viewZhResume.addEventListener('click', function(e) {
+            e.preventDefault();
+            currentLanguage = 'zh';
+            showResume();
+        });
+
+        viewEnResume.addEventListener('click', function(e) {
+            e.preventDefault();
+            currentLanguage = 'en';
+            showResume();
+        });
+
+        function updateDownloadButton() {
+            if (currentLanguage === 'zh') {
+                downloadButton.href = './cv/zh.pdf';
+                downloadButton.textContent = '下载中文简历';
+            } else {
+                downloadButton.href = './cv/en.pdf';
+                downloadButton.textContent = 'Download English Resume';
+            }
+        }
+
+        function updateLanguage(lang) {
+            currentLanguage = lang;
+            welcomeMessage.textContent = translations[lang].welcome;
+            navHome.textContent = translations[lang].home;
+            navDownload.textContent = translations[lang].download;
+            navResume.textContent = translations[lang].resume;
+            navWorks.textContent = translations[lang].works;
+            navWorksMain.textContent = translations[lang].works;
+            downloadZh.textContent = translations[lang].downloadZh;
+            downloadEn.textContent = translations[lang].downloadEn;
+            viewZhResume.textContent = translations[lang].viewZhResume;
+            viewEnResume.textContent = translations[lang].viewEnResume;
+
+            personalInfoText.innerHTML = `
+                <h1>${translations[lang].personalInfo.name}</h1>
+                <p>${translations[lang].personalInfo.email}</p>
+                <p>${translations[lang].personalInfo.phone}</p>
+                <p>${translations[lang].personalInfo.school}</p>
+                <p>${translations[lang].personalInfo.major}</p>
+            `;
+        }
+
+        languageSelect.addEventListener('change', function() {
+            updateLanguage(this.value);
+        });
+
+        // 初始化语言，但不显示简历
+        updateLanguage('zh');
+        hideResume(); // 确保初始状态下简历是隐藏的，提示文本是显示的
+
+        // 添加鼠标跟随星星效果
+        const canvas = document.getElementById('starCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // 设置canvas尺寸为窗口大小
+        function setCanvasSize() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        setCanvasSize();
+        window.addEventListener('resize', setCanvasSize);
+
+        // 星星类
+        class Star {
+            constructor(x, y) {
+                this.x = x;
+                this.y = y;
+                this.size = Math.random() * 3 + 1;
+                this.speedX = (Math.random() - 0.5) * 3;
+                this.speedY = (Math.random() - 0.5) * 3;
+                this.opacity = 1;
+                this.color = this.getRandomColor();
+            }
+
+            getRandomColor() {
+                const colors = [
+                    '255, 182, 193',    // 浅粉色
+                    '173, 216, 230',    // 浅蓝色
+                    '144, 238, 144',    // 浅绿色
+                    '255, 218, 185',    // 浅橙色
+                    '221, 160, 221',    // 浅紫色
+                    '255, 255, 224',    // 浅黄色
+                    '176, 224, 230',    // 粉蓝色
+                    '230, 230, 250'     // 薰衣草色
+                ];
+                return colors[Math.floor(Math.random() * colors.length)];
+            }
+
+            update() {
+                this.x += this.speedX;
+                this.y += this.speedY;
+                this.opacity -= 0.02;
+            }
+
+            draw() {
+                ctx.beginPath();
+                ctx.fillStyle = `rgba(${this.color}, ${this.opacity})`;
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        let stars = [];
+        let mouseX = 0;
+        let mouseY = 0;
+
+        // 监听鼠标移动
+        window.addEventListener('mousemove', (e) => {
+            mouseX = e.clientX;
+            mouseY = e.clientY;
+            // 每次移动添加2-4个星星
+            const count = Math.floor(Math.random() * 3) + 2;
+            for (let i = 0; i < count; i++) {
+                stars.push(new Star(mouseX, mouseY));
+            }
+        });
+
+        // 动画循环
+        function animate() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // 更新和绘制所有星星
+            for (let i = stars.length - 1; i >= 0; i--) {
+                stars[i].update();
+                stars[i].draw();
+                
+                // 移除透明度为0的星星
+                if (stars[i].opacity <= 0) {
+                    stars.splice(i, 1);
+                }
+            }
+            
+            requestAnimationFrame(animate);
+        }
+
+        animate();
+    </script>
+</body>
+</html>

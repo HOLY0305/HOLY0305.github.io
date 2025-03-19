@@ -6,6 +6,64 @@
     <title>黄泓霖的个人网页</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
     <style>
+        #password-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(10px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            transition: opacity 0.5s ease;
+        }
+
+        #password-container {
+            background-color: white;
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        #password-input {
+            padding: 0.5rem;
+            margin: 1rem 0;
+            border: 2px solid #3498db;
+            border-radius: 5px;
+            font-size: 16px;
+            outline: none;
+            transition: border-color 0.3s ease;
+        }
+
+        #password-input:focus {
+            border-color: #2980b9;
+        }
+
+        #submit-password {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s ease;
+        }
+
+        #submit-password:hover {
+            background-color: #2980b9;
+        }
+
+        .content-blur {
+            filter: blur(10px);
+            pointer-events: none;
+            user-select: none;
+        }
+
         * {
             margin: 0;
             padding: 0;
@@ -302,6 +360,13 @@
     </style>
 </head>
 <body>
+    <div id="password-overlay">
+        <div id="password-container">
+            <h2>请输入访问密码</h2>
+            <input type="password" id="password-input" placeholder="请输入密码">
+            <button id="submit-password">确认</button>
+        </div>
+    </div>
     <!-- 添加canvas素，放在body的最前面 -->
     <canvas id="starCanvas" style="position: fixed; top: 0; left: 0; pointer-events: none; z-index: 9999;"></canvas>
     
@@ -755,6 +820,46 @@
         }
 
         animate();
+    </script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const overlay = document.getElementById('password-overlay');
+            const passwordInput = document.getElementById('password-input');
+            const submitButton = document.getElementById('submit-password');
+            const mainContent = document.querySelector('body');
+
+            // 添加模糊效果
+            Array.from(mainContent.children).forEach(child => {
+                if (child !== overlay) {
+                    child.classList.add('content-blur');
+                }
+            });
+
+            function checkPassword() {
+                if (passwordInput.value === '030520') {
+                    overlay.style.opacity = '0';
+                    setTimeout(() => {
+                        overlay.style.display = 'none';
+                        // 移除模糊效果
+                        Array.from(mainContent.children).forEach(child => {
+                            if (child !== overlay) {
+                                child.classList.remove('content-blur');
+                            }
+                        });
+                    }, 500);
+                } else {
+                    alert('密码错误，请重试！');
+                    passwordInput.value = '';
+                }
+            }
+
+            submitButton.addEventListener('click', checkPassword);
+            passwordInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    checkPassword();
+                }
+            });
+        });
     </script>
 </body>
 </html>

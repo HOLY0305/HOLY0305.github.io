@@ -1,0 +1,279 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>今日幸运转盘</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&family=Ma+Shan+Zheng&display=swap" rel="stylesheet">
+  <style>
+    html, body { height: 100%; }
+    body { margin: 0; font-family: Poppins, system-ui, -apple-system, Segoe UI, Roboto, sans-serif; background: radial-gradient(1200px 600px at 50% -10%, #ffe4e6 0%, #fef2f2 30%, #fff 70%); }
+    .bg-ny { background: radial-gradient(1200px 600px at 50% -10%, #0b0b10 0%, #12121a 40%, #1a1a24 80%); }
+    .container { min-height: 100%; display: flex; align-items: center; justify-content: center; padding: 40px 20px; position: relative; overflow: hidden; }
+    .card { width: 100%; max-width: 900px; background: #fff; border-radius: 28px; box-shadow: 0 30px 60px rgba(255, 0, 90, 0.12); position: relative; overflow: hidden; }
+    .ny .card { background: linear-gradient(180deg, rgba(24,24,32,0.9), rgba(24,24,32,0.95)); box-shadow: 0 30px 60px rgba(255, 200, 0, 0.08); }
+    .header { display:flex; align-items:center; justify-content:space-between; padding:26px 28px; }
+    .title { font-weight: 800; letter-spacing: 0.5px; color: #111827; font-size: 24px; }
+    .subtitle { font-weight: 600; color: #fb7185; font-size: 14px; }
+    .ny .title { color: #f1f5f9; }
+    .ny .subtitle { color: #ffd60a; }
+    .content { display:flex; flex-direction:column; align-items:center; gap: 12px; padding: 12px 28px 10px; }
+    .stage { width: 560px; max-width: 92vw; height: 220px; border-radius: 20px; background: #fff; box-shadow: inset 0 0 0 2px #f1f5f9, 0 12px 30px rgba(0,0,0,0.06); position:relative; overflow:hidden; }
+    .ny .stage { background: #0d121a; box-shadow: inset 0 0 0 2px #1f2937, 0 12px 30px rgba(0,0,0,0.35); }
+    .indicator { position:absolute; top:8px; left:50%; transform: translateX(-50%); width: 70px; height: 10px; background: linear-gradient(90deg, rgba(251,113,133,0), rgba(251,113,133,0.8), rgba(251,113,133,0)); border-radius: 999px; }
+    .ny .indicator { background: linear-gradient(90deg, rgba(255,214,10,0), rgba(255,214,10,0.8), rgba(255,214,10,0)); }
+    .track { position:absolute; left:0; top:0; height:100%; display:flex; align-items:center; gap:16px; padding: 0 28px; transform: translateX(0); }
+    .card-item { width: 160px; min-width: 160px; height: 140px; border-radius: 18px; display:flex; flex-direction:column; align-items:center; justify-content:center; color:#fff; box-shadow: 0 12px 28px rgba(0,0,0,0.08); transform: scale(0.94); }
+    .card-item .emoji { font-size: 28px; margin-bottom: 6px; }
+    .card-item .name { font-weight: 800; letter-spacing:0.4px; text-shadow: 0 2px 6px rgba(0,0,0,0.18); }
+    .card-item .weight { font-size: 12px; font-weight: 700; opacity: 0.9; margin-top: 2px; }
+    .card-item.active { transform: scale(1.05); box-shadow: 0 18px 36px rgba(0,0,0,0.12); }
+    .btn { padding: 16px 22px; border-radius: 16px; border: 0; cursor: pointer; font-weight: 800; letter-spacing: 0.6px; font-size: 16px; background: linear-gradient(135deg, #fb7185, #f472b6); color: #fff; box-shadow: 0 10px 20px rgba(251, 113, 133, 0.35); }
+    .btn:disabled { opacity: 0.6; cursor:not-allowed; }
+    .ny .btn { background: linear-gradient(135deg, #ffd60a, #fb923c); box-shadow: 0 10px 20px rgba(255, 214, 10, 0.28); }
+    .ticker { width: 100%; overflow:hidden; border-top:1px solid rgba(0,0,0,0.06); padding: 14px 0 18px; }
+    .ny .ticker { border-top-color: rgba(255,255,255,0.08); }
+    .ticker-inner { display:flex; gap:10px; transform: translateX(0); }
+    .badge { padding:8px 12px; border-radius:14px; font-weight:700; font-size:12px; color:#fff; box-shadow: 0 6px 12px rgba(0,0,0,0.08); }
+    .rolling .ticker-inner { animation: scroll 3.8s linear infinite; }
+    @keyframes scroll { from{ transform: translateX(0)} to{ transform: translateX(-50%)} }
+    .result { position: absolute; inset:0; display:flex; align-items:center; justify-content:center; backdrop-filter: blur(6px); background: rgba(255, 241, 246, 0.6); opacity:0; pointer-events:none; transition: opacity 300ms ease; }
+    .ny .result { background: rgba(16, 16, 22, 0.6); }
+    .result.show { opacity:1; pointer-events:auto; }
+    .result-card { background:#fff; border-radius: 24px; padding: 26px; width: 92%; max-width: 520px; box-shadow: 0 20px 50px rgba(0,0,0,0.12); text-align:center; }
+    .ny .result-card { background:#111827; }
+    .res-title { font-size: 20px; font-weight: 800; letter-spacing: 0.6px; color:#111827; }
+    .ny .res-title { color:#f1f5f9; }
+    .res-name { margin-top: 8px; font-size: 28px; font-weight: 800; color:#fb7185; }
+    .ny .res-name { color:#ffd60a; }
+    .actions { display:flex; gap:10px; justify-content:center; margin-top: 16px; }
+    .link { font-weight:800; padding: 12px 18px; border-radius: 14px; text-decoration:none; color:#fff; background:#111827; }
+    .ny .link { background:#f59e0b; }
+    .decor { position:absolute; inset:0; pointer-events:none; }
+    .heart { position:absolute; font-size: 24px; color:#fb7185; opacity:0.3; animation: float 8s linear infinite; }
+    .star { position:absolute; width:6px; height:6px; background:#ffd60a; border-radius:999px; opacity:0.4; animation: float 10s linear infinite; }
+    @keyframes float { 0%{transform: translateY(30px)} 50%{transform: translateY(-20px)} 100%{transform: translateY(30px)} }
+  </style>
+</head>
+<body>
+  <div id="root" class="container">
+    <div class="decor" id="decor"></div>
+    <div class="card" id="card">
+      <div class="header">
+        <div>
+          <div class="title">今日幸运抽奖</div>
+          <div class="subtitle">为你准备的甜蜜惊喜</div>
+        </div>
+        <a class="link" href="./">返回主页</a>
+      </div>
+      <div class="content">
+        <div class="stage">
+          <div class="indicator"></div>
+          <div class="track" id="track"></div>
+        </div>
+        <button id="spin" class="btn">开始抽奖</button>
+      </div>
+      <div class="ticker" id="ticker"><div class="ticker-inner" id="tickerInner"></div></div>
+      <div class="result" id="result">
+        <div class="result-card">
+          <div class="res-title">今日幸运结果</div>
+          <div class="res-name" id="resName"></div>
+          <div class="actions">
+            <a class="link" href="./">返回主页</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script>
+    const params = new URLSearchParams(location.search);
+    const theme = params.get('theme');
+    if (theme === 'newyear') {
+      document.body.classList.add('bg-ny');
+      document.getElementById('card').classList.add('ny');
+    }
+    const defaultItems = [
+      { name: '亲亲', weight: 0.5, color: '#fb7185', emoji: '😘' },
+      { name: '草莓一个', weight: 0.2, color: '#ef4444', emoji: '🍓' },
+      { name: '添加20分钟累计量', weight: 0.1, color: '#22c55e', emoji: '⏱️' },
+      { name: '添加60分钟累积量', weight: 0.04, color: '#f59e0b', emoji: '⏲️' },
+      { name: '奶茶一杯', weight: 0.05, color: '#f472b6', emoji: '🧋' },
+      { name: '小蛋糕一个', weight: 0.05, color: '#fb7185', emoji: '🍰' },
+      { name: '额外打针一次', weight: 0.05, color: '#3b82f6', emoji: '💉' },
+      { name: '请客吃饭', weight: 0.006, color: '#22c55e', emoji: '🍽️' },
+      { name: '自选礼物一份', weight: 0.004, color: '#a78bfa', emoji: '🎁' }
+    ];
+    function readConfig() {
+      try {
+        const j = params.get('luck');
+        if (j) return JSON.parse(decodeURIComponent(j));
+      } catch {}
+      try {
+        const s = localStorage.getItem('luck_config');
+        if (s) return JSON.parse(s);
+      } catch {}
+      return { items: defaultItems };
+    }
+    window.__setLuckConfig = (cfg) => localStorage.setItem('luck_config', JSON.stringify(cfg));
+    window.__getLuckConfig = () => readConfig();
+    const cfg = readConfig();
+    const items = cfg.items && Array.isArray(cfg.items) && cfg.items.length ? cfg.items : defaultItems;
+    const ticker = document.getElementById('ticker');
+    const tickerInner = document.getElementById('tickerInner');
+    const badgesOnce = items.map(i => `<span class="badge" style="background:${i.color || '#fb7185'}">${i.name}</span>`).join('');
+    tickerInner.innerHTML = badgesOnce + badgesOnce;
+    const track = document.getElementById('track');
+    const DUP = 3;
+    const pool = Array.from({ length: DUP }).flatMap(() => items);
+    track.innerHTML = pool.map(i => `
+      <div class="card-item" style="background:${i.color}">
+        <div class="emoji">${i.emoji || '🎁'}</div>
+        <div class="name">${i.name}</div>
+      </div>
+    `).join('');
+    const cardWidth = 160 + 16; // width + gap
+    const stageWidth = document.querySelector('.stage').clientWidth;
+    const totalCards = pool.length;
+    let currentTransform = 0;
+    const total = items.reduce((s, i) => s + (Number(i.weight) || 0), 0);
+    let spinning = false;
+    function pickWeighted() {
+      const s = items.reduce((p, c) => p + (Number(c.weight) || 0), 0);
+      let r = Math.random() * s;
+      for (let i = 0; i < items.length; i++) {
+        r -= (Number(items[i].weight) || 0);
+        if (r <= 0) return i;
+      }
+      return items.length - 1;
+    }
+    function confetti() {
+      const decor = document.getElementById('decor');
+      for (let i = 0; i < 24; i++) {
+        const el = document.createElement(theme === 'newyear' ? 'div' : 'span');
+        if (theme === 'newyear') {
+          el.className = 'star';
+          el.style.left = Math.random() * 100 + '%';
+          el.style.top = Math.random() * 100 + '%';
+          el.style.animationDuration = (6 + Math.random() * 6) + 's';
+        } else {
+          el.className = 'heart';
+          el.textContent = '❤';
+          el.style.left = Math.random() * 100 + '%';
+          el.style.top = Math.random() * 100 + '%';
+          el.style.animationDuration = (6 + Math.random() * 6) + 's';
+          el.style.opacity = 0.25 + Math.random() * 0.4;
+        }
+        decor.appendChild(el);
+        setTimeout(() => decor.removeChild(el), 12000);
+      }
+    }
+    function loadState() {
+      try {
+        const s = localStorage.getItem('SLEEP_MASTER_DATA');
+        if (s) return JSON.parse(s);
+      } catch {}
+      return null;
+    }
+    function saveState(state) {
+      try {
+        localStorage.setItem('SLEEP_MASTER_DATA', JSON.stringify(state));
+      } catch {}
+    }
+    async function syncToGithub(state) {
+      try {
+        const settings = state.settings || {};
+        const repo = settings.githubRepo;
+        const path = settings.githubPath;
+        const token = settings.githubToken;
+        if (!repo || !path || !token) return false;
+        const baseUrl = `https://api.github.com/repos/${repo}/contents/${path}`;
+        const headers = {
+          'Authorization': `token ${token}`,
+          'Accept': 'application/vnd.github.v3+json',
+          'Content-Type': 'application/json'
+        };
+        let sha = '';
+        const getRes = await fetch(baseUrl, { headers });
+        if (getRes.ok) {
+          const data = await getRes.json();
+          sha = data.sha;
+        }
+        const jsonString = JSON.stringify(state, null, 2);
+        const utf8Bytes = new TextEncoder().encode(jsonString);
+        const base64Content = btoa(String.fromCharCode(...utf8Bytes));
+        const putRes = await fetch(baseUrl, {
+          method: 'PUT',
+          headers,
+          body: JSON.stringify({
+            message: `Lottery Award Sync: ${new Date().toLocaleString()}`,
+            content: base64Content,
+            sha: sha || undefined
+          })
+        });
+        return putRes.ok;
+      } catch {
+        return false;
+      }
+    }
+    async function applyPrizeEffect(item) {
+      const state = loadState();
+      if (!state) return;
+      const today = new Date().toISOString().split('T')[0];
+      state.lottery = Array.isArray(state.lottery) ? state.lottery : [];
+      const prevEntry = state.lottery.find(e => e.date === today);
+      const prevMinutes = prevEntry ? (prevEntry.prize === '添加20分钟累计量' ? 20 : prevEntry.prize === '添加60分钟累积量' ? 60 : 0) : 0;
+      if (prevEntry) {
+        state.lottery = state.lottery.filter(e => e.date !== today);
+        if (prevMinutes > 0) {
+          state.totalBuffer = (state.totalBuffer || 0) - prevMinutes;
+          state.logs = Array.isArray(state.logs) ? state.logs.filter(l => !(l.date === today && l.note && l.note.indexOf('抽奖奖励：添加') === 0)) : [];
+        }
+      }
+      state.lottery = [...state.lottery, { date: today, prize: item.name, emoji: item.emoji || '', color: item.color || '' }];
+      const minutes = item.name === '添加20分钟累计量' ? 20 :
+                      item.name === '添加60分钟累积量' ? 60 : 0;
+      if (minutes > 0) {
+        const awardLog = {
+          date: today,
+          actualSleepTime: '奖励',
+          actualWakeTime: '奖励',
+          sleepBufferEarned: minutes,
+          wakeBufferEarned: 0,
+          note: `抽奖奖励：添加${minutes}分钟余量`
+        };
+        state.logs = [...state.logs, awardLog];
+        state.totalBuffer = (state.totalBuffer || 0) + minutes;
+      }
+      saveState(state);
+      await syncToGithub(state);
+    }
+    document.getElementById('spin').addEventListener('click', () => {
+      if (spinning) return;
+      spinning = true;
+      ticker.classList.add('rolling');
+      const idx = pickWeighted();
+      const targetGlobal = items.length + idx; // center block
+      const targetCenterX = targetGlobal * cardWidth + (cardWidth / 2);
+      const stageCenterX = stageWidth / 2;
+      const toTranslate = stageCenterX - targetCenterX;
+      track.style.transition = 'transform 3.6s cubic-bezier(0.22, 1, 0.36, 1)';
+      currentTransform = toTranslate;
+      track.style.transform = `translateX(${currentTransform}px)`;
+      setTimeout(() => {
+        spinning = false;
+        ticker.classList.remove('rolling');
+        track.style.transition = '';
+        Array.from(track.children).forEach(el => el.classList.remove('active'));
+        const chosenEl = track.children[targetGlobal];
+        if (chosenEl) chosenEl.classList.add('active');
+        confetti();
+        applyPrizeEffect(items[idx]);
+        document.getElementById('resName').textContent = items[idx].name;
+        document.getElementById('result').classList.add('show');
+      }, 3800);
+    });
+  </script>
+</body>
+</html>

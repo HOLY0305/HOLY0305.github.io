@@ -1,0 +1,274 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>抽奖配置管理</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;700;800&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Plus Jakarta Sans', system-ui, -apple-system, Segoe UI, Roboto, sans-serif; }
+    .card { background: #fff; border-radius: 18px; border: 1px solid #eef2f7; box-shadow: 0 10px 30px rgba(2,6,23,.06); }
+    .input { border: 1px solid #e5e7eb; border-radius: 12px; padding: 10px 12px; font-weight: 700; font-size: 14px; }
+    .pill { border-radius: 9999px; padding: 6px 10px; font-size: 12px; font-weight: 800; }
+  </style>
+</head>
+<body class="bg-[#F8FAFC] min-h-screen">
+  <div class="max-w-5xl mx-auto py-10 px-4 space-y-6">
+    <div class="flex items-center justify-between">
+      <h1 class="text-2xl font-black tracking-tight text-slate-800">抽奖配置管理</h1>
+      <div class="flex items-center gap-2">
+        <button id="btn-logout" class="pill bg-slate-900 text-white hidden">退出登录</button>
+        <a href="./points.html" class="pill bg-indigo-600 text-white">前往抽奖页</a>
+      </div>
+    </div>
+    <div id="auth" class="card p-6">
+      <div id="auth-login" class="space-y-3">
+        <div class="text-sm font-bold text-slate-600">请输入管理密码：</div>
+        <input id="login-pass" type="password" placeholder="密码" class="input w-full" />
+        <button id="btn-login" class="pill bg-indigo-600 text-white">登 录</button>
+      </div>
+    </div>
+    <div id="panel" class="space-y-6 hidden">
+      <div class="card p-6">
+        <div class="flex items-center justify-between mb-4">
+          <div>
+            <div class="text-lg font-black text-slate-800">奖品池</div>
+            <div class="text-xs font-bold text-slate-400">编辑后保存将实时同步到抽奖页</div>
+          </div>
+          <div class="pill bg-slate-100 text-slate-700" id="sum-pill">总权重：0</div>
+        </div>
+        <div id="list" class="space-y-2"></div>
+        <div class="flex items-center gap-2 mt-3">
+          <button id="btn-add" class="pill bg-slate-900 text-white">新增奖品</button>
+          <button id="btn-reset" class="pill bg-amber-500 text-white">恢复默认</button>
+          <button id="btn-save" class="pill bg-emerald-600 text-white">保存配置</button>
+          <button id="btn-init" class="pill bg-indigo-600 text-white">初始化并推送默认配置</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script>
+    const ADMIN_KEY = 'luck_admin_authed';
+    const ADMIN_PASS = 'holy&cc';
+    const CONFIG_KEY = 'luck_config';
+    const DEFAULT_ITEMS = [
+      { name: '亲亲', weight: 0.5, color: '#fb7185', emoji: '😘' },
+      { name: '草莓一个', weight: 0.2, color: '#ef4444', emoji: '🍓' },
+      { name: '添加20分钟累计量', weight: 0.1, color: '#22c55e', emoji: '⏱️' },
+      { name: '添加60分钟累积量', weight: 0.04, color: '#f59e0b', emoji: '⏲️' },
+      { name: '奶茶一杯', weight: 0.05, color: '#f472b6', emoji: '🧋' },
+      { name: '小蛋糕一个', weight: 0.05, color: '#fb7185', emoji: '🍰' },
+      { name: '额外打针一次', weight: 0.05, color: '#3b82f6', emoji: '💉' },
+      { name: '请客吃饭', weight: 0.006, color: '#22c55e', emoji: '🍽️' },
+      { name: '自选礼物一份', weight: 0.004, color: '#a78bfa', emoji: '🎁' }
+    ];
+
+    const $ = s => document.querySelector(s);
+    const auth = $('#auth');
+    const authSet = $('#auth-set');
+    const authLogin = $('#auth-login');
+    const panel = $('#panel');
+    const list = $('#list');
+    const sumPill = $('#sum-pill');
+    const btnLogout = $('#btn-logout');
+    const btnAdd = $('#btn-add');
+    const btnReset = $('#btn-reset');
+    const btnSave = $('#btn-save');
+
+    function authState() {
+      return localStorage.getItem(ADMIN_KEY) === '1';
+    }
+    function ensureAuthUI() {
+      const has = authState();
+      authLogin.classList.toggle('hidden', has);
+      btnLogout.classList.toggle('hidden', !has);
+    }
+    function showPanel() {
+      auth.classList.add('hidden');
+      panel.classList.remove('hidden');
+      render();
+    }
+    function getConfig() {
+      try {
+        const s = localStorage.getItem(CONFIG_KEY);
+        if (s) return JSON.parse(s);
+      } catch {}
+      return { items: DEFAULT_ITEMS };
+    }
+    function getParams() {
+      const url = new URL(location.href);
+      return {
+        repo: url.searchParams.get('repo'),
+        luckpath: url.searchParams.get('luckpath') || 'luck-data.json',
+        token: url.searchParams.get('token')
+      };
+    }
+    function getLocalState() {
+      try {
+        const s = localStorage.getItem('SLEEP_MASTER_DATA');
+        if (s) return JSON.parse(s);
+      } catch {}
+      return null;
+    }
+    function saveLocalState(state) {
+      try { localStorage.setItem('SLEEP_MASTER_DATA', JSON.stringify(state)); } catch {}
+    }
+    function storeParamsToState() {
+      const p = getParams();
+      if (!p.repo && !p.token) return;
+      const st = getLocalState() || { settings: { githubRepo: '', githubPath: 'test-data.json', githubToken: '' }, logs: [], totalBuffer: 0, lottery: [] };
+      st.settings = st.settings || { githubRepo: '', githubPath: 'test-data.json', githubToken: '' };
+      if (p.repo) st.settings.githubRepo = p.repo;
+      if (p.token) st.settings.githubToken = p.token;
+      saveLocalState(st);
+    }
+    function effectiveGh() {
+      const p = getParams();
+      const st = getLocalState();
+      return {
+        repo: p.repo || (st && st.settings && st.settings.githubRepo) || '',
+        path: p.luckpath || 'luck-data.json',
+        token: p.token || (st && st.settings && st.settings.githubToken) || ''
+      };
+    }
+    async function ghGet() {
+      const { repo, path, token } = effectiveGh();
+      if (!repo || !path || !token) return null;
+      const url = `https://api.github.com/repos/${repo}/contents/${path}`;
+      const res = await fetch(url, { headers: { 'Authorization': `token ${token}`, 'Accept': 'application/vnd.github.v3+json' } });
+      if (!res.ok) return null;
+      const data = await res.json();
+      const decoded = atob(data.content);
+      const bytes = Uint8Array.from(decoded, c => c.charCodeAt(0));
+      const text = new TextDecoder().decode(bytes);
+      const json = JSON.parse(text);
+      return { json, sha: data.sha };
+    }
+    async function ghPut(nextJson, sha) {
+      const { repo, path, token } = effectiveGh();
+      if (!repo || !path || !token) return false;
+      const url = `https://api.github.com/repos/${repo}/contents/${path}`;
+      const utf8Bytes = new TextEncoder().encode(JSON.stringify(nextJson, null, 2));
+      const base64Content = btoa(String.fromCharCode(...utf8Bytes));
+      const res = await fetch(url, {
+        method: 'PUT',
+        headers: { 'Authorization': `token ${token}`, 'Accept': 'application/vnd.github.v3+json', 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: `Update luckConfig: ${new Date().toLocaleString()}`, content: base64Content, sha })
+      });
+      return res.ok;
+    }
+    function setConfig(cfg) {
+      localStorage.setItem(CONFIG_KEY, JSON.stringify(cfg));
+      // 触发 storage 事件的同步，在同窗口需手动派发
+      window.dispatchEvent(new StorageEvent('storage', { key: CONFIG_KEY, newValue: JSON.stringify(cfg) }));
+    }
+    function render() {
+      const cfg = getConfig();
+      const items = cfg.items || [];
+      list.innerHTML = items.map((it, idx) => `
+        <div class="grid grid-cols-12 gap-2 items-center card p-3">
+          <input class="input col-span-4" value="${it.name}" data-i="${idx}" data-k="name" />
+          <input class="input col-span-3" value="${it.weight}" data-i="${idx}" data-k="weight" />
+          <input class="input col-span-3" value="${it.color}" data-i="${idx}" data-k="color" />
+          <input class="input col-span-1" value="${it.emoji || ''}" data-i="${idx}" data-k="emoji" />
+          <button class="pill bg-rose-500 text-white col-span-1" data-del="${idx}">删</button>
+        </div>
+      `).join('');
+      updateSum();
+    }
+    function updateSum() {
+      const items = getConfig().items || [];
+      const s = items.reduce((p, c) => p + (Number(c.weight)||0), 0);
+      sumPill.textContent = `总权重：${(+s.toFixed(6))}`;
+      sumPill.className = 'pill ' + (Math.abs(s-1) < 1e-6 ? 'bg-emerald-50 text-emerald-600' : 'bg-amber-50 text-amber-600');
+    }
+    list.addEventListener('input', (e) => {
+      const t = e.target;
+      const i = t.getAttribute('data-i'); const k = t.getAttribute('data-k');
+      if (i == null || !k) return;
+      const cfg = getConfig(); cfg.items = cfg.items || [];
+      const v = t.value;
+      if (k === 'weight') cfg.items[i][k] = Number(v);
+      else cfg.items[i][k] = v;
+      setConfig(cfg);
+      if (k === 'weight') updateSum();
+    });
+    list.addEventListener('click', (e) => {
+      const t = e.target;
+      const di = t.getAttribute && t.getAttribute('data-del');
+      if (di != null) {
+        const cfg = getConfig(); cfg.items = cfg.items || [];
+        cfg.items.splice(Number(di), 1);
+        setConfig(cfg); render();
+      }
+    });
+    btnAdd.addEventListener('click', () => {
+      const cfg = getConfig(); cfg.items = cfg.items || [];
+      cfg.items.push({ name: '新奖品', weight: 0, color: '#6366f1', emoji: '🎁' });
+      setConfig(cfg); render();
+    });
+    btnReset.addEventListener('click', () => {
+      setConfig({ items: DEFAULT_ITEMS }); render();
+    });
+    btnSave.addEventListener('click', async () => {
+      const cfg = getConfig();
+      const s = cfg.items.reduce((p,c)=>p+(Number(c.weight)||0),0);
+      if (Math.abs(s-1) > 1e-6) {
+        alert('总权重不等于 1，请调整后再保存');
+        return;
+      }
+      const remote = await ghGet();
+      if (remote && remote.json) {
+        const next = Object.assign({}, remote.json, { luckConfig: cfg });
+        const ok = await ghPut(next, remote.sha);
+        if (!ok) {
+          alert('云端保存失败，仅本地已更新且抽奖页已实时刷新');
+          return;
+        }
+      }
+      alert('保存成功，抽奖页已实时更新');
+    });
+    document.getElementById('btn-init').addEventListener('click', async () => {
+      const cfg = { items: DEFAULT_ITEMS };
+      setConfig(cfg);
+      render();
+      const remote = await ghGet();
+      const next = Object.assign({}, (remote && remote.json) || {}, {
+        version: 1,
+        updatedAt: new Date().toISOString(),
+        luckConfig: cfg
+      });
+      const ok = await ghPut(next, remote ? remote.sha : undefined);
+      alert(ok ? '默认配置已推送到 luck-data.json' : '推送失败，请检查 Repo/Token 权限与路径');
+    });
+    $('#btn-login').addEventListener('click', () => {
+      const p = $('#login-pass').value.trim();
+      if (p !== ADMIN_PASS) { alert('密码错误'); return; }
+      localStorage.setItem(ADMIN_KEY, '1');
+      showPanel();
+    });
+    btnLogout.addEventListener('click', () => {
+      localStorage.removeItem(ADMIN_KEY);
+      location.reload();
+    });
+    (function boot() {
+      storeParamsToState();
+      auth.classList.remove('hidden');
+      if (authState()) {
+        ensureAuthUI();
+        showPanel();
+      } else {
+        ensureAuthUI();
+      }
+      (async () => {
+        const remote = await ghGet();
+        if (remote && remote.json && remote.json.luckConfig) {
+          setConfig(remote.json.luckConfig);
+          if (authState()) render();
+        }
+      })();
+    })();
+  </script>
+</body>
+</html>

@@ -255,9 +255,12 @@
       alert('保存成功，抽奖页已实时更新');
     });
     document.getElementById('btn-save-conn').addEventListener('click', () => {
-      const repo = (document.getElementById('repo-input') as HTMLInputElement).value.trim();
-      const path = (document.getElementById('path-input') as HTMLInputElement).value.trim() || 'luck-data.json';
-      const token = (document.getElementById('token-input') as HTMLInputElement).value.trim();
+      const repoEl = document.getElementById('repo-input');
+      const pathEl = document.getElementById('path-input');
+      const tokenEl = document.getElementById('token-input');
+      const repo = repoEl && 'value' in repoEl ? repoEl.value.trim() : '';
+      const path = (pathEl && 'value' in pathEl ? pathEl.value.trim() : '') || 'luck-data.json';
+      const token = tokenEl && 'value' in tokenEl ? tokenEl.value.trim() : '';
       const st = getLocalState() || { settings:{ githubRepo:'', githubPath:'test-data.json', githubToken:'' }, logs:[], totalBuffer:0, lottery:[] };
       st.settings = st.settings || { githubRepo:'', githubPath:'test-data.json', githubToken:'' };
       st.settings.githubRepo = repo;
@@ -301,9 +304,12 @@
       }
       // 连接表单回显
       const st = getLocalState();
-      (document.getElementById('repo-input') as HTMLInputElement).value = (st && st.settings && st.settings.githubRepo) || '';
-      (document.getElementById('path-input') as HTMLInputElement).value = 'luck-data.json';
-      (document.getElementById('token-input') as HTMLInputElement).value = (st && st.settings && st.settings.githubToken) || '';
+      const repoEl = document.getElementById('repo-input');
+      const pathEl = document.getElementById('path-input');
+      const tokenEl = document.getElementById('token-input');
+      if (repoEl && 'value' in repoEl) repoEl.value = (st && st.settings && st.settings.githubRepo) || '';
+      if (pathEl && 'value' in pathEl) pathEl.value = 'luck-data.json';
+      if (tokenEl && 'value' in tokenEl) tokenEl.value = (st && st.settings && st.settings.githubToken) || '';
       (async () => {
         const remote = await ghGet();
         if (remote && remote.json && remote.json.luckConfig) {

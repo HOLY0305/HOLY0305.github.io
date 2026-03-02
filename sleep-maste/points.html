@@ -48,7 +48,10 @@
           <div class="title">积分累计抽奖</div>
           <div class="subtitle">按累计时长换算次数</div>
         </div>
-        <a class="link" href="./">返回主页</a>
+        <div style="display:flex;gap:8px">
+          <button id="btn-sync" class="link" style="background:#6366f1">同步配置</button>
+          <a class="link" href="./">返回主页</a>
+        </div>
       </div>
       <div class="content">
         <div class="counter" id="counter">剩余次数：0</div>
@@ -205,6 +208,18 @@
       updateCounter();
     }
     init();
+    document.getElementById('btn-sync').addEventListener('click', async () => {
+      const cfg = await tryFetchRemoteConfig();
+      if (cfg) {
+        window.__setLuckConfig(cfg);
+        items = getItemsFromConfig();
+        renderTicker();
+        renderTrack();
+        alert('已从云端同步 luck-data 配置');
+      } else {
+        alert('未能从云端读取 luck-data，请检查连接设置（Repo/Token）或在管理员页保存连接。');
+      }
+    });
     function pickWeighted() {
       const s = items.reduce((p, c) => p + (Number(c.weight) || 0), 0);
       let r = Math.random() * s;

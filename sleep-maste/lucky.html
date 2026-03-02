@@ -141,7 +141,7 @@
       const url = new URL(location.href);
       return {
         repo: url.searchParams.get('repo'),
-        path: url.searchParams.get('luckpath') || 'luck-data.json',
+        path: url.searchParams.get('luckpath') || url.searchParams.get('path') || 'luck-data.json',
         token: url.searchParams.get('token')
       };
     }

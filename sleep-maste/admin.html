@@ -33,6 +33,31 @@
       <div class="card p-6">
         <div class="flex items-center justify-between mb-4">
           <div>
+            <div class="text-lg font-black text-slate-800">连接设置</div>
+            <div class="text-xs font-bold text-slate-400">设置私有仓库与 Token，供云端同步 luck-data.json</div>
+          </div>
+        </div>
+        <div class="grid grid-cols-12 gap-2 items-center">
+          <div class="col-span-4">
+            <div class="text-xs font-bold text-slate-500 mb-1">Owner/Repo</div>
+            <input id="repo-input" class="input w-full" placeholder="HOLY0305/my-sleep-data" />
+          </div>
+          <div class="col-span-4">
+            <div class="text-xs font-bold text-slate-500 mb-1">luckpath</div>
+            <input id="path-input" class="input w-full" placeholder="luck-data.json" />
+          </div>
+          <div class="col-span-3">
+            <div class="text-xs font-bold text-slate-500 mb-1">Token</div>
+            <input id="token-input" class="input w-full" placeholder="github_pat_xxx" />
+          </div>
+          <div class="col-span-1 flex items-end">
+            <button id="btn-save-conn" class="pill bg-slate-900 text-white w-full">保存</button>
+          </div>
+        </div>
+      </div>
+      <div class="card p-6">
+        <div class="flex items-center justify-between mb-4">
+          <div>
             <div class="text-lg font-black text-slate-800">奖品池</div>
             <div class="text-xs font-bold text-slate-400">编辑后保存将实时同步到抽奖页</div>
           </div>
@@ -229,6 +254,19 @@
       }
       alert('保存成功，抽奖页已实时更新');
     });
+    document.getElementById('btn-save-conn').addEventListener('click', () => {
+      const repo = (document.getElementById('repo-input') as HTMLInputElement).value.trim();
+      const path = (document.getElementById('path-input') as HTMLInputElement).value.trim() || 'luck-data.json';
+      const token = (document.getElementById('token-input') as HTMLInputElement).value.trim();
+      const st = getLocalState() || { settings:{ githubRepo:'', githubPath:'test-data.json', githubToken:'' }, logs:[], totalBuffer:0, lottery:[] };
+      st.settings = st.settings || { githubRepo:'', githubPath:'test-data.json', githubToken:'' };
+      st.settings.githubRepo = repo;
+      st.settings.githubToken = token;
+      // luckpath 不占用 githubPath，单独由 URL 参数管理；但为了回显也保存一份
+      st.settings.githubPath = path;
+      saveLocalState(st);
+      alert('连接配置已保存到本地。抽奖页将使用这些凭据访问 luck-data.json');
+    });
     document.getElementById('btn-init').addEventListener('click', async () => {
       const cfg = { items: DEFAULT_ITEMS };
       setConfig(cfg);
@@ -261,6 +299,11 @@
       } else {
         ensureAuthUI();
       }
+      // 连接表单回显
+      const st = getLocalState();
+      (document.getElementById('repo-input') as HTMLInputElement).value = (st && st.settings && st.settings.githubRepo) || '';
+      (document.getElementById('path-input') as HTMLInputElement).value = 'luck-data.json';
+      (document.getElementById('token-input') as HTMLInputElement).value = (st && st.settings && st.settings.githubToken) || '';
       (async () => {
         const remote = await ghGet();
         if (remote && remote.json && remote.json.luckConfig) {

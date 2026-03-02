@@ -48,10 +48,7 @@
           <div class="title">积分累计抽奖</div>
           <div class="subtitle">按累计时长换算次数</div>
         </div>
-        <div style="display:flex;gap:8px">
-          <button id="btn-sync" class="link" style="background:#6366f1">同步配置</button>
-          <a class="link" href="./">返回主页</a>
-        </div>
+        <a class="link" href="./">返回主页</a>
       </div>
       <div class="content">
         <div class="counter" id="counter">剩余次数：0</div>
@@ -75,23 +72,18 @@
     </div>
   </div>
   <script>
-    const params = new URLSearchParams(location.search);
     const defaultItems = [
       { name: '亲亲', weight: 0.5, color: '#fb7185', emoji: '😘' },
-      { name: '草莓一个', weight: 0.2, color: '#ef4444', emoji: '🍓' },
-      { name: '添加20分钟累计量', weight: 0.1, color: '#22c55e', emoji: '⏱️' },
-      { name: '添加60分钟累积量', weight: 0.04, color: '#f59e0b', emoji: '⏲️' },
-      { name: '奶茶一杯', weight: 0.05, color: '#f472b6', emoji: '🧋' },
-      { name: '小蛋糕一个', weight: 0.05, color: '#fb7185', emoji: '🍰' },
-      { name: '额外打针一次', weight: 0.05, color: '#3b82f6', emoji: '💉' },
-      { name: '请客吃饭', weight: 0.006, color: '#22c55e', emoji: '🍽️' },
-      { name: '自选礼物一份', weight: 0.004, color: '#a78bfa', emoji: '🎁' }
+      { name: '草莓一个', weight: 0.4, color: '#ef4444', emoji: '🍓' },
+      { name: '添加20分钟累计量', weight: 0.01, color: '#22c55e', emoji: '⏱️' },
+      { name: '添加60分钟累积量', weight: 0.01, color: '#f59e0b', emoji: '⏲️' },
+      { name: '奶茶一杯', weight: 0.01, color: '#f472b6', emoji: '🧋' },
+      { name: '小蛋糕一个', weight: 0.01, color: '#fb7185', emoji: '🍰' },
+      { name: '额外打针一次', weight: 0.01, color: '#3b82f6', emoji: '💉' },
+      { name: '请客吃饭', weight: 0.004, color: '#22c55e', emoji: '🍽️' },
+      { name: '自选礼物一份', weight: 0.006, color: '#a78bfa', emoji: '🎁' }
     ];
     function readConfig() {
-      try {
-        const j = params.get('luck');
-        if (j) return JSON.parse(decodeURIComponent(j));
-      } catch {}
       try {
         const s = localStorage.getItem('luck_config');
         if (s) return JSON.parse(s);
@@ -109,57 +101,10 @@
     let pool = [];
     let currentTransform = 0;
     let spinning = false;
-    function getParams() {
-      const url = new URL(location.href);
-      return {
-        repo: url.searchParams.get('repo'),
-        path: url.searchParams.get('luckpath') || url.searchParams.get('path') || 'luck-data.json',
-        token: url.searchParams.get('token')
-      };
-    }
     function getLocalState() {
       try {
         const s = localStorage.getItem('SLEEP_MASTER_DATA');
         if (s) return JSON.parse(s);
-      } catch {}
-      return null;
-    }
-    function saveLocalState(state) {
-      try { localStorage.setItem('SLEEP_MASTER_DATA', JSON.stringify(state)); } catch {}
-    }
-    function storeParamsToState() {
-      const p = getParams();
-      if (!p.repo && !p.token) return;
-      const st = getLocalState() || { settings: { githubRepo: '', githubPath: 'test-data.json', githubToken: '' }, logs: [], totalBuffer: 0, lottery: [] };
-      st.settings = st.settings || { githubRepo: '', githubPath: 'test-data.json', githubToken: '' };
-      if (p.repo) st.settings.githubRepo = p.repo;
-      if (p.token) st.settings.githubToken = p.token;
-      saveLocalState(st);
-    }
-    function effectiveGh() {
-      const p = getParams();
-      const st = getLocalState();
-      return {
-        repo: p.repo || (st && st.settings && st.settings.githubRepo) || '',
-        path: p.path || 'luck-data.json',
-        token: p.token || (st && st.settings && st.settings.githubToken) || ''
-      };
-    }
-    async function tryFetchRemoteConfig() {
-      const { repo, path, token } = effectiveGh();
-      if (!repo || !path || !token) return null;
-      try {
-        const url = `https://api.github.com/repos/${repo}/contents/${path}`;
-        const res = await fetch(url, { headers: { 'Authorization': `token ${token}`, 'Accept': 'application/vnd.github.v3+json' } });
-        if (!res.ok) return null;
-        const data = await res.json();
-        const decoded = atob(data.content);
-        const bytes = Uint8Array.from(decoded, c => c.charCodeAt(0));
-        const text = new TextDecoder().decode(bytes);
-        const json = JSON.parse(text);
-        if (json && json.luckConfig && Array.isArray(json.luckConfig.items) && json.luckConfig.items.length) {
-          return json.luckConfig;
-        }
       } catch {}
       return null;
     }
@@ -196,30 +141,13 @@
       document.getElementById('counter').textContent = `剩余次数：${draws}`;
       return draws;
     }
-    async function init() {
-      storeParamsToState();
-      const remoteCfg = await tryFetchRemoteConfig();
-      if (remoteCfg) {
-        window.__setLuckConfig(remoteCfg);
-      }
+    function init() {
       items = getItemsFromConfig();
       renderTicker();
       renderTrack();
       updateCounter();
     }
     init();
-    document.getElementById('btn-sync').addEventListener('click', async () => {
-      const cfg = await tryFetchRemoteConfig();
-      if (cfg) {
-        window.__setLuckConfig(cfg);
-        items = getItemsFromConfig();
-        renderTicker();
-        renderTrack();
-        alert('已从云端同步 luck-data 配置');
-      } else {
-        alert('未能从云端读取 luck-data，请检查连接设置（Repo/Token）或在管理员页保存连接。');
-      }
-    });
     function pickWeighted() {
       const s = items.reduce((p, c) => p + (Number(c.weight) || 0), 0);
       let r = Math.random() * s;

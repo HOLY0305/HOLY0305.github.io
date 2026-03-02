@@ -157,21 +157,41 @@
     }
     function storeParamsToState() {
       const p = getParams();
-      if (!p.repo && !p.token) return;
+      if (!p.repo && !p.token && !p.path) return;
       const st = getLocalState() || { settings: { githubRepo: '', githubPath: 'test-data.json', githubToken: '' }, logs: [], totalBuffer: 0, lottery: [] };
       st.settings = st.settings || { githubRepo: '', githubPath: 'test-data.json', githubToken: '' };
       if (p.repo) st.settings.githubRepo = p.repo;
       if (p.token) st.settings.githubToken = p.token;
+      if (p.path) st.settings.githubPath = p.path;
       saveLocalState(st);
+    }
+    function parseRepoAndPathFromUrl(u) {
+      try {
+        const url = new URL(u);
+        if (url.hostname === 'raw.githubusercontent.com') {
+          const seg = url.pathname.split('/').filter(Boolean);
+          if (seg.length >= 4) return { repo: `${seg[0]}/${seg[1]}`, path: seg.slice(3).join('/') };
+        }
+        if (url.hostname === 'github.com') {
+          const seg = url.pathname.split('/').filter(Boolean);
+          const blobIdx = seg.indexOf('blob');
+          if (blobIdx >= 0 && blobIdx + 2 < seg.length) return { repo: `${seg[0]}/${seg[1]}`, path: seg.slice(blobIdx + 2).join('/') };
+        }
+      } catch {}
+      return null;
     }
     function effectiveGh() {
       const p = getParams();
       const st = getLocalState();
-      return {
-        repo: p.repo || (st && st.settings && st.settings.githubRepo) || '',
-        path: p.path || 'luck-data.json',
-        token: p.token || (st && st.settings && st.settings.githubToken) || ''
-      };
+      let repo = p.repo || (st && st.settings && st.settings.githubRepo) || '';
+      let path = p.path || 'luck-data.json';
+      let token = p.token || (st && st.settings && st.settings.githubToken) || '';
+      const parsed = (p.path && (p.path.startsWith('http://') || p.path.startsWith('https://'))) ? parseRepoAndPathFromUrl(p.path) : null;
+      if (parsed) {
+        repo = parsed.repo;
+        path = parsed.path;
+      }
+      return { repo, path, token };
     }
     async function tryFetchRemoteConfig() {
       const { repo, path, token } = effectiveGh();
@@ -181,13 +201,19 @@
         const res = await fetch(url, { headers: { 'Authorization': `token ${token}`, 'Accept': 'application/vnd.github.v3+json' } });
         if (!res.ok) return null;
         const data = await res.json();
-        const decoded = atob(data.content);
-        const bytes = Uint8Array.from(decoded, c => c.charCodeAt(0));
-        const text = new TextDecoder().decode(bytes);
-        const json = JSON.parse(text);
-        if (json && json.luckConfig && Array.isArray(json.luckConfig.items) && json.luckConfig.items.length) {
-          return json.luckConfig;
+        let text = '';
+        if (data && data.content) {
+          const decoded = atob(data.content);
+          const bytes = Uint8Array.from(decoded, c => c.charCodeAt(0));
+          text = new TextDecoder().decode(bytes);
+        } else {
+          text = JSON.stringify(data);
         }
+        const json = JSON.parse(text);
+        if (json && json.luckConfig && Array.isArray(json.luckConfig.items) && json.luckConfig.items.length) return json.luckConfig;
+        if (Array.isArray(json.items) && json.items.length) return { items: json.items };
+        if (json && json.settings && json.settings.luckConfig && Array.isArray(json.settings.luckConfig.items) && json.settings.luckConfig.items.length) return json.settings.luckConfig;
+        if (json && json.luck_config && Array.isArray(json.luck_config.items) && json.luck_config.items.length) return json.luck_config;
       } catch {}
       return null;
     }
